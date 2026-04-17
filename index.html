@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phòng Lab Mô Phỏng Mạng Tương Tác</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
+        .animate-fadeIn { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Get Icons from global Lucide object
+        const { Play, CheckCircle2, XCircle, Network, Info, ServerCog, Wifi, Monitor, Smartphone, Globe, ShieldAlert, Router: RouterIcon, Layers } = window.lucide;
+
+        // Function to create Icon components from Lucide
+        const IconComponent = ({ name, size = 24, className = "" }) => {
+            const iconRef = React.useRef(null);
+            React.useEffect(() => {
+                if (iconRef.current) {
+                    window.lucide.createIcons({
+                        icons: { [name]: window.lucide.icons[name] },
+                        nameAttr: 'data-lucide',
+                        root: iconRef.current.parentNode
+                    });
+                }
+            }, [name, size, className]);
+            return <i data-lucide={name} style={{ width: size, height: size }} className={className} ref={iconRef}></i>;
+        };
+
+        // --- TOPOLOGY ICONS (Custom SVGs) ---
+        const TopoRouter = () => (
+            <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg">
+                <circle cx="50" cy="50" r="45" fill="#0284c7" />
+                <circle cx="50" cy="50" r="35" fill="none" stroke="#7dd3fc" strokeWidth="2" strokeDasharray="6,4" />
+                <g fill="#ffffff">
+                    <path d="M50 15 L58 28 L42 28 Z" /><rect x="47" y="28" width="6" height="15" />
+                    <path d="M50 85 L58 72 L42 72 Z" /><rect x="47" y="57" width="6" height="15" />
+                    <path d="M15 50 L28 42 L28 58 Z" /><rect x="28" y="47" width="15" height="6" />
+                    <path d="M85 50 L72 42 L72 58 Z" /><rect x="57" y="47" width="15" height="6" />
+                </g>
+            </svg>
+        );
+
+        const TopoFirewall = () => (
+            <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg">
+                <rect x="10" y="15" width="80" height="70" rx="4" fill="#dc2626" />
+                <g stroke="#fca5a5" strokeWidth="3">
+                    <line x1="10" y1="38" x2="90" y2="38" />
+                    <line x1="10" y1="62" x2="90" y2="62" />
+                    <line x1="36" y1="15" x2="36" y2="38" />
+                    <line x1="64" y1="15" x2="64" y2="38" />
+                    <line x1="23" y1="38" x2="23" y2="62" />
+                    <line x1="50" y1="38" x2="50" y2="62" />
+                    <line x1="77" y1="38" x2="77" y2="62" />
+                    <line x1="36" y1="62" x2="36" y2="85" />
+                    <line x1="64" y1="62" x2="64" y2="85" />
+                </g>
+            </svg>
+        );
+
+        const TopoL2Switch = () => (
+            <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg">
+                <rect x="10" y="25" width="80" height="50" rx="6" fill="#0284c7" />
+                <g fill="#ffffff">
+                    <path d="M 75 35 L 85 40 L 75 45 Z" /><rect x="15" y="38" width="60" height="4" />
+                    <path d="M 25 55 L 15 60 L 25 65 Z" /><rect x="25" y="58" width="60" height="4" />
+                </g>
+            </svg>
+        );
+
+        const TopoL3Switch = () => (
+            <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg">
+                <rect x="10" y="20" width="80" height="60" rx="6" fill="#0284c7" />
+                <circle cx="50" cy="50" r="18" fill="#ffffff" />
+                <g fill="#0284c7">
+                    <path d="M50 36 L55 41 L45 41 Z" />
+                    <path d="M50 64 L55 59 L45 59 Z" />
+                    <path d="M36 50 L41 45 L41 55 Z" />
+                    <path d="M64 50 L59 45 L59 55 Z" />
+                </g>
+            </svg>
+        );
+
+        const TopoWLC = () => (
+            <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg">
+                <rect x="10" y="20" width="80" height="60" rx="4" fill="#475569" />
+                <rect x="15" y="30" width="70" height="15" rx="2" fill="#94a3b8" />
+                <rect x="15" y="55" width="70" height="15" rx="2" fill="#94a3b8" />
+                <circle cx="75" cy="37.5" r="3" fill="#22c55e" />
+                <circle cx="75" cy="62.5" r="3" fill="#22c55e" />
+                <circle cx="65" cy="37.5" r="3" fill="#3b82f6" />
+                <circle cx="65" cy="62.5" r="3" fill="#ef4444" />
+                <rect x="20" y="35" width="20" height="5" rx="1" fill="#cbd5e1" />
+                <rect x="20" y="60" width="20" height="5" rx="1" fill="#cbd5e1" />
+            </svg>
+        );
+
+        const TopoAP = () => (
+            <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg">
+                <path d="M 20 65 Q 50 20 80 65 Z" fill="#f1f5f9" />
+                <rect x="15" y="65" width="70" height="10" rx="5" fill="#cbd5e1" />
+                <circle cx="50" cy="70" r="3" fill="#22c55e" />
+                <g stroke="#94a3b8" strokeWidth="4" strokeLinecap="round">
+                    <line x1="30" y1="45" x2="15" y2="15" />
+                    <line x1="70" y1="45" x2="85" y2="15" />
+                </g>
+                <g fill="none" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round">
+                    <path d="M 35 30 Q 50 15 65 30" />
+                    <path d="M 42 40 Q 50 30 58 40" />
+                </g>
+            </svg>
+        );
+
+        const TopoPC = () => (
+            <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg">
+                <rect x="15" y="20" width="70" height="50" rx="4" fill="#334155" />
+                <rect x="20" y="25" width="60" height="35" rx="2" fill="#bae6fd" />
+                <path d="M 45 70 L 40 85 L 60 85 L 55 70 Z" fill="#64748b" />
+                <rect x="30" y="85" width="40" height="6" rx="3" fill="#475569" />
+                <line x1="25" y1="65" x2="75" y2="65" stroke="#475569" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+        );
+
+        const TopoPhone = () => (
+            <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg">
+                <rect x="30" y="10" width="40" height="80" rx="6" fill="#1e293b" />
+                <rect x="34" y="20" width="32" height="60" rx="3" fill="#bae6fd" />
+                <circle cx="50" cy="85" r="3" fill="#475569" />
+                <line x1="45" y1="15" x2="55" y2="15" stroke="#475569" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+        );
+
+        const TopoInternet = () => (
+            <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg">
+                <path d="M 25 60 A 15 15 0 0 1 45 45 A 25 25 0 0 1 85 55 A 15 15 0 0 1 75 80 L 25 80 A 15 15 0 0 1 25 60 Z" fill="#0ea5e9" />
+                <text x="52" y="65" fill="#ffffff" fontSize="16" fontWeight="bold" textAnchor="middle" fontFamily="sans-serif">INTERNET</text>
+            </svg>
+        );
+
+        // --- DATA: DEVICES ---
+        const devices = {
+            internet: { id: 'internet', type: 'Internet', name: 'Internet / WAN', icon: TopoInternet, x: 400, y: 50, 
+                desc: 'Mạng toàn cầu. Nơi chứa các dịch vụ như Website, Cloud, Game Server. Nó nằm ngoài vùng kiểm soát trực tiếp của doanh nghiệp.',
+                detail: 'Trong thực tế, để kết nối với Internet, doanh nghiệp cần thuê đường truyền của các nhà cung cấp dịch vụ Internet (ISP) như VNPT, Viettel, FPT. Tốc độ và độ ổn định phụ thuộc vào gói cước.'
+            },
+            firewall: { id: 'firewall', type: 'Firewall', name: 'Tường lửa (Firewall)', icon: TopoFirewall, x: 400, y: 150, 
+                desc: 'Thiết bị bảo mật ở cửa ngõ. Kiểm soát và lọc toàn bộ luồng dữ liệu ra/vào mạng nội bộ.',
+                detail: 'Firewall hoạt động giống như nhân viên an ninh ở cổng tòa nhà. Nó áp dụng các "Luật" (Rules) do quản trị viên thiết lập. Ví dụ: Chặn IP lạ từ bên ngoài truy cập vào máy chủ nội bộ, chặn nhân viên truy cập các trang web độc hại, chống tấn công DDoS và ngăn chặn virus/mã độc lây lan.'
+            },
+            router: { id: 'router', type: 'Router', name: 'Bộ định tuyến (Router)', icon: TopoRouter, x: 400, y: 250, 
+                desc: 'Thiết bị lớp 3 (Network Layer). Chuyên tìm đường đi tốt nhất (Routing) để kết nối các hệ thống mạng khác nhau.',
+                detail: 'Router sử dụng địa chỉ IP để xác định đích đến. Nó sở hữu "Bảng định tuyến" (Routing Table) giống như bản đồ giao thông. Khi nhận một gói tin, Router sẽ tra bảng này để quyết định xem nên đẩy gói tin đó qua cổng nào để đến đích nhanh nhất. Router cũng thực hiện NAT (dịch địa chỉ IP) để mạng nội bộ có thể ra Internet.'
+            },
+            l3switch: { id: 'l3switch', type: 'L3 Switch', name: 'L3 Switch (Core)', icon: TopoL3Switch, x: 400, y: 350, 
+                desc: 'Thiết bị trung tâm mạng nội bộ (Core/Distribution). Kết hợp khả năng chuyển mạch tốc độ cao của Switch và khả năng định tuyến của Router.',
+                detail: 'Trong mạng lớn, việc để Router xử lý toàn bộ định tuyến nội bộ giữa các phòng ban (VLAN) sẽ gây quá tải. L3 Switch giải quyết vấn đề này bằng cách sử dụng chip phần cứng (ASIC) chuyên dụng để định tuyến giữa các VLAN với tốc độ cực nhanh, nhường lại việc kết nối Internet cho Router xử lý.'
+            },
+            wlc: { id: 'wlc', type: 'Controller', name: 'WLAN Controller', icon: TopoWLC, x: 230, y: 350, 
+                desc: 'Thiết bị điều khiển Wi-Fi tập trung. Quản lý hàng chục đến hàng ngàn Access Point cùng lúc.',
+                detail: 'Nếu chỉ có 1-2 cục Wi-Fi, bạn có thể tự cấu hình tên/mật khẩu từng cục. Nhưng nếu có 100 cục phát trong tòa nhà, bạn cần WLC. WLC sẽ đẩy cấu hình xuống tất cả AP tự động, quản lý việc chuyển vùng (Roaming) để người dùng đi lại trong tòa nhà mà không rớt mạng, và tự động điều chỉnh công suất sóng/kênh truyền để tránh nhiễu.'
+            },
+            l2switch: { id: 'l2switch', type: 'L2 Switch', name: 'L2 Switch (Access)', icon: TopoL2Switch, x: 230, y: 470, 
+                desc: 'Thiết bị lớp 2 (Data Link Layer). Cung cấp các cổng mạng vật lý (RJ45) để cắm máy tính, máy in.',
+                detail: 'L2 Switch chỉ hiểu địa chỉ MAC vật lý của thiết bị, không hiểu IP. Nó học địa chỉ MAC và lưu vào bảng MAC (CAM Table). Khi PC A muốn gửi dữ liệu cho PC B, Switch sẽ tra bảng MAC, biết chính xác PC B cắm ở cổng số mấy và chỉ chuyển dữ liệu ra đúng cổng đó, giúp mạng không bị xung đột và tốc độ luôn đạt tối đa.'
+            },
+            ap: { id: 'ap', type: 'Access Point', name: 'Access Point (AP)', icon: TopoAP, x: 570, y: 470, 
+                desc: 'Điểm truy cập không dây. Chuyển đổi dữ liệu mạng có dây thành sóng vô tuyến (Wi-Fi) và ngược lại.',
+                detail: 'AP thường được gắn trên trần nhà. Nó thực chất là một "cây cầu" (Bridge) vô hình kết nối các thiết bị không dây (điện thoại, laptop) vào mạng LAN có dây. Trong mô hình doanh nghiệp, các AP thường là loại "Lightweight" (AP mỏng), nghĩa là chúng không tự xử lý logic mà đẩy hết dữ liệu qua đường hầm (CAPWAP Tunnel) về cho WLC xử lý.'
+            },
+            pc1: { id: 'pc1', type: 'End Device', name: 'PC 1 (Kế toán)', icon: TopoPC, x: 130, y: 570, 
+                desc: 'Máy tính người dùng cuối dùng mạng cáp đồng (Ethernet).',
+                detail: 'Đóng vai trò là nguồn phát sinh hoặc đích nhận dữ liệu. Cần được cấu hình IP, Subnet Mask, và Default Gateway để giao tiếp.'
+            },
+            pc2: { id: 'pc2', type: 'End Device', name: 'PC 2 (Kế toán)', icon: TopoPC, x: 330, y: 570, 
+                desc: 'Máy tính người dùng cuối dùng mạng cáp đồng (Ethernet).',
+                detail: 'Cùng thuộc VLAN (mạng con) Kế toán với PC1, nên có thể giao tiếp trực tiếp qua L2 Switch mà không cần định tuyến.'
+            },
+            phone: { id: 'phone', type: 'End Device', name: 'Điện thoại (Khách)', icon: TopoPhone, x: 570, y: 570, 
+                desc: 'Thiết bị người dùng cuối kết nối qua sóng Wi-Fi.',
+                detail: 'Thuộc VLAN Khách. Doanh nghiệp thường tách biệt mạng Khách và mạng Nội bộ (Kế toán) để đảm bảo bảo mật. Khách chỉ có thể ra Internet chứ không được truy cập vào máy chủ dữ liệu nội bộ.'
+            },
+        };
+
+        // --- DATA: CONNECTIONS ---
+        const links = [
+            { source: 'internet', target: 'firewall' },
+            { source: 'firewall', target: 'router' },
+            { source: 'router', target: 'l3switch' },
+            { source: 'l3switch', target: 'l2switch' },
+            { source: 'l3switch', target: 'wlc' },
+            { source: 'wlc', target: 'l2switch', dashed: true },
+            { source: 'l3switch', target: 'ap' },
+            { source: 'wlc', target: 'ap', dashed: true },
+            { source: 'l2switch', target: 'pc1' },
+            { source: 'l2switch', target: 'pc2' },
+            { source: 'ap', target: 'phone', dashed: true },
+        ];
+
+        // --- DATA: SCENARIOS ---
+        const scenarios = [
+            {
+                id: 1,
+                title: 'PC1 truy cập dữ liệu trên PC2 (Cùng mạng LAN)',
+                desc: 'Mô phỏng Switching Lớp 2. Dữ liệu không đi qua Router.',
+                path: ['pc1', 'l2switch', 'pc2'],
+                logs: {
+                    'pc1': 'Người dùng ở PC1 (IP 10.0.1.10) gửi tệp tin cho PC2 (IP 10.0.1.20). Do cùng dải mạng, PC1 dùng giao thức ARP tìm được địa chỉ MAC của PC2. PC1 đóng gói dữ liệu thành Frame gửi ra dây cáp.',
+                    'l2switch': 'Switch nhận Frame, đọc địa chỉ MAC đích. Tra bảng MAC thấy PC2 đang cắm ở Port 2. Switch lập tức đẩy trực tiếp Frame ra Port 2. Tốc độ chuyển mạch tính bằng micro-giây.',
+                    'pc2': 'PC2 nhận được Frame, kiểm tra MAC đúng là của mình nên mở gói tin để xử lý tệp tin.'
+                },
+                status: 'success'
+            },
+            {
+                id: 2,
+                title: 'PC1 gửi file sang Điện thoại (Khác mạng con)',
+                desc: 'Mô phỏng Định tuyến nội bộ (Inter-VLAN Routing) qua L3 Switch.',
+                path: ['pc1', 'l2switch', 'l3switch', 'ap', 'phone'],
+                logs: {
+                    'pc1': 'PC1 (VLAN Kế toán) cần gửi dữ liệu sang Điện thoại (VLAN Khách). Nhận thấy đích đến khác mạng, PC1 đóng gói IP Packet gửi đến Default Gateway (Cổng mặc định là IP của L3 Switch).',
+                    'l2switch': 'Switch Lớp 2 không biết định tuyến. Nó chỉ làm nhiệm vụ chuyển tiếp Frame lên cổng nối với L3 Switch (Cổng Trunk).',
+                    'l3switch': 'L3 Switch tháo lớp Frame, đọc lớp IP Packet. Tra bảng định tuyến nội bộ, phát hiện mạng của Khách nằm ở phía bên phải. Nó đóng gói lại và đẩy xuống AP.',
+                    'ap': 'Access Point nhận dữ liệu dạng tín hiệu điện từ dây cáp. Nó điều chế, mã hóa (WPA2/WPA3) và phát tín hiệu này ra môi trường không khí dưới dạng sóng Wi-Fi.',
+                    'phone': 'Điện thoại (Khách) bắt được sóng Wi-Fi, giải mã tín hiệu và nhận được file.'
+                },
+                status: 'success'
+            },
+            {
+                id: 3,
+                title: 'Điện thoại truy cập Website bị cấm (Firewall chặn)',
+                desc: 'Mô phỏng luồng ra Internet và vai trò của Firewall.',
+                path: ['phone', 'ap', 'l3switch', 'router', 'firewall'],
+                logs: {
+                    'phone': 'Điện thoại của khách gõ địa chỉ website có nội dung độc hại trên trình duyệt.',
+                    'ap': 'AP thu nhận sóng Wi-Fi từ điện thoại, chuyển hóa thành luồng dữ liệu cáp đồng và đẩy lên mạng lõi.',
+                    'l3switch': 'L3 Switch nhận định đây là kết nối ra Internet (không phải IP nội bộ), nên nó đẩy gói tin lên Default Route (hướng về Router trung tâm).',
+                    'router': 'Router tra bảng định tuyến, biết cần đẩy ra cổng WAN để đến Internet. Trước khi đi, gói tin phải đi qua Firewall.',
+                    'firewall': 'Firewall thực hiện phân tích sâu gói tin (Deep Packet Inspection). Quét địa chỉ IP và URL đích. Trùng khớp với Rule "BLOCK_MALICIOUS_SITES". Tường lửa LẬP TỨC HỦY (DROP) gói tin và không cho ra Internet.'
+                },
+                status: 'blocked'
+            }
+        ];
+
+        function App() {
+            const [selectedDevice, setSelectedDevice] = React.useState(devices.router);
+            const [activeScenario, setActiveScenario] = React.useState(null);
+            const [packetPos, setPacketPos] = React.useState(null);
+            const [currentStep, setCurrentStep] = React.useState(-1);
+            const [isPlaying, setIsPlaying] = React.useState(false);
+
+            // Cập nhật icon lúc đầu render nếu cần
+            React.useEffect(() => {
+                if (window.lucide) window.lucide.createIcons();
+            }, []);
+
+            // Animation effect for topology
+            React.useEffect(() => {
+                let timer;
+                if (isPlaying && activeScenario && currentStep < activeScenario.path.length) {
+                    const deviceId = activeScenario.path[currentStep];
+                    const device = devices[deviceId];
+                    
+                    setPacketPos({ x: device.x, y: device.y });
+                    setSelectedDevice(device);
+
+                    timer = setTimeout(() => {
+                        if (currentStep === activeScenario.path.length - 1) {
+                            setIsPlaying(false); // End of path
+                        } else {
+                            setCurrentStep(prev => prev + 1);
+                        }
+                    }, 4000); // 4s per hop (chậm hơn để đọc giải thích dài)
+                }
+                return () => clearTimeout(timer);
+            }, [isPlaying, currentStep, activeScenario]);
+
+            const startSimulation = (scenario) => {
+                setActiveScenario(scenario);
+                setCurrentStep(0);
+                setIsPlaying(true);
+                const firstDevice = devices[scenario.path[0]];
+                setPacketPos({ x: firstDevice.x, y: firstDevice.y });
+                setSelectedDevice(firstDevice);
+            };
+
+            const stopSimulation = () => {
+                setIsPlaying(false);
+                setPacketPos(null);
+                setCurrentStep(-1);
+                setActiveScenario(null);
+            };
+
+            return (
+                <div className="flex flex-col h-screen w-full bg-slate-100 font-sans text-slate-800">
+                    
+                    {/* Header Bar */}
+                    <div className="h-14 bg-indigo-900 text-white flex items-center px-6 shadow-md shrink-0 z-40">
+                        <IconComponent name="network" className="mr-3" />
+                        <h1 className="text-xl font-bold tracking-wide">Interactive Network Simulator</h1>
+                        <div className="ml-auto text-sm text-indigo-200">Lab: Chức năng thiết bị mạng cơ bản</div>
+                    </div>
+
+                    <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
+                        
+                        {/* LEFT PANEL: NETWORK TOPOLOGY */}
+                        <div className="lg:w-[60%] flex flex-col p-4 relative bg-white border-r border-slate-200 shadow-inner">
+                            <h2 className="text-lg font-bold text-slate-700 flex items-center gap-2 mb-2 shrink-0 z-30 pt-2 pl-2">
+                                Mô Hình Mạng Doanh Nghiệp
+                            </h2>
+                            
+                            {/* Network Canvas (Scrollable on small screens if needed) */}
+                            <div className="flex-1 overflow-auto relative flex items-center justify-center">
+                                <div className="relative w-[800px] h-[650px] scale-[0.6] sm:scale-75 md:scale-90 lg:scale-100 transform origin-center">
+                                    
+                                    {/* Background zones */}
+                                    <div className="absolute top-[500px] left-[50px] w-[350px] h-[150px] bg-blue-50 rounded-3xl border-2 border-blue-200 border-dashed opacity-70 pointer-events-none"></div>
+                                    <div className="absolute top-[500px] left-[500px] w-[200px] h-[150px] bg-green-50 rounded-3xl border-2 border-green-200 border-dashed opacity-70 pointer-events-none"></div>
+                                    <div className="absolute top-[510px] left-[70px] text-blue-500 font-bold uppercase text-xs">VLAN 10: Kế toán</div>
+                                    <div className="absolute top-[510px] left-[520px] text-green-500 font-bold uppercase text-xs">VLAN 20: Khách (Wi-Fi)</div>
+
+                                    {/* Draw Lines */}
+                                    <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
+                                        {links.map((link, idx) => {
+                                            const src = devices[link.source];
+                                            const tgt = devices[link.target];
+                                            return (
+                                                <line
+                                                    key={idx}
+                                                    x1={src.x}
+                                                    y1={src.y}
+                                                    x2={tgt.x}
+                                                    y2={tgt.y}
+                                                    stroke={link.dashed ? "#cbd5e1" : "#94a3b8"}
+                                                    strokeWidth="3"
+                                                    strokeDasharray={link.dashed ? "6,6" : "none"}
+                                                />
+                                            );
+                                        })}
+                                    </svg>
+
+                                    {/* Draw Devices */}
+                                    {Object.values(devices).map((device) => {
+                                        const Icon = device.icon;
+                                        const isSelected = selectedDevice?.id === device.id;
+                                        const isPulsing = isPlaying && activeScenario?.path[currentStep] === device.id;
+
+                                        return (
+                                            <div
+                                                key={device.id}
+                                                onClick={() => setSelectedDevice(device)}
+                                                className={`absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center cursor-pointer transition-all duration-300 z-10
+                                                    ${isSelected ? 'scale-110 z-20' : 'hover:scale-105'}`}
+                                                style={{ left: device.x, top: device.y }}
+                                            >
+                                                <div className={`relative transition-all rounded-xl p-1 w-16 h-16 bg-white
+                                                    ${isSelected ? 'ring-4 ring-indigo-300 shadow-xl' : 'drop-shadow-md'}
+                                                    ${isPulsing ? 'animate-pulse ring-4 ring-yellow-400 bg-yellow-50' : ''}
+                                                `}>
+                                                    <Icon />
+                                                </div>
+                                                <span className={`mt-2 text-xs font-bold px-2 py-1 rounded-md bg-white border shadow-sm whitespace-nowrap
+                                                    ${isSelected ? 'text-indigo-700 border-indigo-400' : 'text-slate-600 border-slate-200'}
+                                                    ${isPulsing ? 'bg-yellow-100 border-yellow-400 text-yellow-800' : ''}
+                                                `}>
+                                                    {device.name}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+
+                                    {/* Draw Packet (Animation) */}
+                                    {packetPos && (
+                                        <div 
+                                            className="absolute transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-yellow-400 rounded-full border-2 border-white shadow-[0_0_15px_rgba(250,204,21,0.8)] transition-all duration-[2000ms] ease-in-out z-50 flex items-center justify-center"
+                                            style={{ left: packetPos.x, top: packetPos.y }}
+                                        >
+                                            <div className="w-2 h-2 bg-yellow-800 rounded-full animate-ping"></div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            <div className="absolute top-4 right-4 text-xs font-semibold text-slate-500 bg-white/90 p-2 rounded shadow backdrop-blur flex items-center gap-2 border border-slate-200">
+                                <IconComponent name="info" size={16}/> Click vào thiết bị bất kỳ để xem chức năng
+                            </div>
+                        </div>
+
+                        {/* RIGHT PANEL: INFO & MINDMAP SIMULATION */}
+                        <div className="lg:w-[40%] bg-slate-50 flex flex-col h-full z-20 overflow-hidden">
+                            
+                            {/* Device Information Section - Nửa trên */}
+                            <div className="h-1/2 p-6 bg-white border-b border-slate-200 shadow-sm overflow-y-auto shrink-0 flex flex-col relative">
+                                {/* Dải màu trang trí phía trên */}
+                                <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500"></div>
+                                
+                                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 border-b pb-2">Thông tin thiết bị chọn</h3>
+                                
+                                <div className="flex items-start gap-4 mb-4">
+                                    <div className={`w-16 h-16 p-2 rounded-xl bg-slate-50 border border-slate-200 shadow flex items-center justify-center shrink-0`}>
+                                        {selectedDevice && <selectedDevice.icon />}
+                                    </div>
+                                    <div>
+                                        <h3 className="text-2xl font-bold text-slate-800 leading-tight">{selectedDevice.name}</h3>
+                                        <div className="inline-block px-2 py-0.5 mt-2 text-xs font-bold text-indigo-700 bg-indigo-100 rounded-full border border-indigo-200">
+                                            Role: {selectedDevice.type}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="space-y-4">
+                                    <div>
+                                        <h4 className="font-semibold text-slate-700 mb-1 text-sm">Định nghĩa ngắn gọn:</h4>
+                                        <p className="text-slate-600 text-sm bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                            {selectedDevice.desc}
+                                        </p>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 className="font-semibold text-slate-700 mb-1 text-sm flex items-center gap-1">
+                                            <IconComponent name="info" size={14} className="text-blue-500"/> Giải thích chi tiết & Thực tế:
+                                        </h4>
+                                        <p className="text-slate-700 text-sm leading-relaxed bg-blue-50/50 p-4 rounded-lg border border-blue-100 text-justify">
+                                            {selectedDevice.detail}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Simulation Controls Section - Nửa dưới */}
+                            <div className="h-1/2 p-6 flex flex-col overflow-hidden bg-slate-50">
+                                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 border-b pb-2 flex items-center gap-2">
+                                    <IconComponent name="play" size={16} className="text-indigo-600" /> Bảng Mô Phỏng Luồng
+                                </h3>
+                                
+                                {!isPlaying && !activeScenario ? (
+                                    <div className="space-y-3 overflow-y-auto pr-2 pb-6 custom-scrollbar">
+                                        <p className="text-sm text-slate-500 mb-2 italic">Hãy chọn một kịch bản bên dưới để xem luồng đi của gói tin (Packet):</p>
+                                        {scenarios.map(scen => (
+                                            <button
+                                                key={scen.id}
+                                                onClick={() => startSimulation(scen)}
+                                                className="w-full text-left p-4 bg-white border border-slate-200 rounded-xl hover:border-indigo-400 hover:shadow-md transition-all group relative overflow-hidden flex flex-col"
+                                            >
+                                                <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500 transform origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform"></div>
+                                                <div className="font-bold text-slate-800 group-hover:text-indigo-700 ml-2">Kịch bản {scen.id}: {scen.title}</div>
+                                                <div className="text-xs text-slate-500 mt-1 ml-2 bg-slate-50 inline-block p-1 rounded">{scen.desc}</div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col h-full overflow-hidden">
+                                        <div className="bg-white border border-slate-200 shadow-sm p-3 rounded-xl mb-4 shrink-0 flex justify-between items-center">
+                                            <div>
+                                                <h4 className="font-bold text-indigo-900 text-sm mb-1">{activeScenario?.title}</h4>
+                                                <div className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded inline-block">
+                                                    Trạm dừng: {currentStep + 1} / {activeScenario.path.length}
+                                                </div>
+                                            </div>
+                                            <button 
+                                                onClick={stopSimulation}
+                                                className="px-3 py-1.5 text-xs bg-slate-100 text-slate-600 hover:bg-red-500 hover:text-white rounded-lg font-bold transition-colors shadow-sm"
+                                            >
+                                                Kết thúc
+                                            </button>
+                                        </div>
+
+                                        {/* FLOW MAP (MINDMAP) */}
+                                        <div className="flex-1 overflow-y-auto bg-white border border-slate-200 rounded-xl p-4 sm:p-6 relative custom-scrollbar">
+                                            <div className="absolute top-10 bottom-10 left-8 sm:left-10 w-1 bg-slate-100 rounded-full z-0"></div>
+
+                                            {activeScenario.path.map((deviceId, idx) => {
+                                                const device = devices[deviceId];
+                                                const Icon = device.icon;
+                                                const isActive = currentStep === idx;
+                                                const isPassed = currentStep > idx;
+                                                const isPending = currentStep < idx;
+                                                const isLastNode = idx === activeScenario.path.length - 1;
+                                                
+                                                return (
+                                                    <div key={idx} className="relative z-10 flex gap-4 sm:gap-6 mb-8 group">
+                                                        
+                                                        {/* Node Icon */}
+                                                        <div className="relative flex flex-col items-center shrink-0 w-10 sm:w-12">
+                                                            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-4 transition-all duration-500 z-10 bg-white
+                                                                ${isPassed ? 'border-indigo-500' : ''}
+                                                                ${isActive ? 'border-yellow-400 ring-4 ring-yellow-100 scale-110 shadow-md' : ''}
+                                                                ${isPending ? 'border-slate-200 grayscale opacity-50' : ''}
+                                                            `}>
+                                                                <div className="w-6 h-6 sm:w-8 sm:h-8"><Icon /></div>
+                                                            </div>
+
+                                                            {/* Connected Line active state */}
+                                                            {!isLastNode && (
+                                                                <div className={`absolute top-10 sm:top-12 w-1 h-[calc(100%+32px)] transition-colors duration-1000 -z-10
+                                                                    ${isPassed ? 'bg-indigo-500' : 'bg-transparent'}
+                                                                `}></div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Node Content / Log */}
+                                                        <div className={`flex-1 pt-1 transition-all duration-500 ${isPending ? 'opacity-40' : 'opacity-100'}`}>
+                                                            <div className="font-bold text-slate-800 flex items-center gap-2 text-sm sm:text-base">
+                                                                {device.name}
+                                                                {isPassed && <IconComponent name="check-circle-2" size={16} className="text-indigo-500" />}
+                                                            </div>
+                                                            
+                                                            {(isActive || isPassed) && (
+                                                                <div className={`mt-2 text-xs sm:text-sm p-3 rounded-lg border leading-relaxed
+                                                                    ${isActive ? 'bg-yellow-50 border-yellow-200 text-yellow-900 shadow-inner' : 'bg-slate-50 border-slate-100 text-slate-600'}
+                                                                `}>
+                                                                    {activeScenario.logs[deviceId]}
+                                                                </div>
+                                                            )}
+                                                            
+                                                            {/* Result Tag for Last Node */}
+                                                            {isLastNode && (isActive || isPassed) && !isPlaying && (
+                                                                <div className={`mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold animate-fadeIn shadow-sm
+                                                                    ${activeScenario.status === 'success' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200'}
+                                                                `}>
+                                                                    {activeScenario.status === 'success' ? <IconComponent name="check-circle-2" size={18}/> : <IconComponent name="x-circle" size={18}/>}
+                                                                    {activeScenario.status === 'success' ? 'Thành công: Gói tin đến đích!' : 'Thất bại: Gói tin bị Hủy (Dropped)!'}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
