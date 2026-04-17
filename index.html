@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Phòng Lab Mô Phỏng Mạng Tương Tác</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,14 +14,15 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; overflow: hidden; overscroll-behavior: none; touch-action: manipulation; }
         .animate-fadeIn { animation: fadeIn 0.5s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scrollbar { scrollbar-width: thin; scrollbar-color: #cbd5e1 #f1f5f9; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -159,44 +160,44 @@
         // --- DATA: DEVICES ---
         const devices = {
             internet: { id: 'internet', type: 'Internet', name: 'Internet / WAN', icon: TopoInternet, x: 400, y: 50, 
-                desc: 'Mạng toàn cầu. Nơi chứa các dịch vụ như Website, Cloud, Game Server. Nó nằm ngoài vùng kiểm soát trực tiếp của doanh nghiệp.',
-                detail: 'Trong thực tế, để kết nối với Internet, doanh nghiệp cần thuê đường truyền của các nhà cung cấp dịch vụ Internet (ISP) như VNPT, Viettel, FPT. Tốc độ và độ ổn định phụ thuộc vào gói cước.'
+                desc: 'Mạng toàn cầu. Nơi chứa các dịch vụ Web, Cloud nằm ngoài vùng kiểm soát doanh nghiệp.',
+                detail: 'Trong thực tế, doanh nghiệp thuê đường truyền từ ISP (như VNPT, Viettel). Tốc độ phụ thuộc vào gói cước.'
             },
-            firewall: { id: 'firewall', type: 'Firewall', name: 'Tường lửa (Firewall)', icon: TopoFirewall, x: 400, y: 150, 
-                desc: 'Thiết bị bảo mật ở cửa ngõ. Kiểm soát và lọc toàn bộ luồng dữ liệu ra/vào mạng nội bộ.',
-                detail: 'Firewall hoạt động giống như nhân viên an ninh ở cổng tòa nhà. Nó áp dụng các "Luật" (Rules) do quản trị viên thiết lập. Ví dụ: Chặn IP lạ từ bên ngoài truy cập vào máy chủ nội bộ, chặn nhân viên truy cập các trang web độc hại, chống tấn công DDoS và ngăn chặn virus/mã độc lây lan.'
+            firewall: { id: 'firewall', type: 'Firewall', name: 'Tường lửa', icon: TopoFirewall, x: 400, y: 150, 
+                desc: 'Thiết bị bảo mật ở cửa ngõ. Kiểm soát và lọc toàn bộ dữ liệu ra/vào mạng nội bộ.',
+                detail: 'Như nhân viên an ninh tòa nhà. Nó áp dụng các "Luật" để chặn IP lạ, chặn web độc hại, chống tấn công DDoS.'
             },
-            router: { id: 'router', type: 'Router', name: 'Bộ định tuyến (Router)', icon: TopoRouter, x: 400, y: 250, 
-                desc: 'Thiết bị lớp 3 (Network Layer). Chuyên tìm đường đi tốt nhất (Routing) để kết nối các hệ thống mạng khác nhau.',
-                detail: 'Router sử dụng địa chỉ IP để xác định đích đến. Nó sở hữu "Bảng định tuyến" (Routing Table) giống như bản đồ giao thông. Khi nhận một gói tin, Router sẽ tra bảng này để quyết định xem nên đẩy gói tin đó qua cổng nào để đến đích nhanh nhất. Router cũng thực hiện NAT (dịch địa chỉ IP) để mạng nội bộ có thể ra Internet.'
+            router: { id: 'router', type: 'Router', name: 'Bộ định tuyến', icon: TopoRouter, x: 400, y: 250, 
+                desc: 'Tìm đường đi tốt nhất (Routing) để kết nối các mạng khác nhau (VD: LAN ra Internet).',
+                detail: 'Dùng địa chỉ IP để tra "Bảng định tuyến". Router quyết định cổng đi nhanh nhất, thực hiện NAT để ra mạng ngoài.'
             },
             l3switch: { id: 'l3switch', type: 'L3 Switch', name: 'L3 Switch (Core)', icon: TopoL3Switch, x: 400, y: 350, 
-                desc: 'Thiết bị trung tâm mạng nội bộ (Core/Distribution). Kết hợp khả năng chuyển mạch tốc độ cao của Switch và khả năng định tuyến của Router.',
-                detail: 'Trong mạng lớn, việc để Router xử lý toàn bộ định tuyến nội bộ giữa các phòng ban (VLAN) sẽ gây quá tải. L3 Switch giải quyết vấn đề này bằng cách sử dụng chip phần cứng (ASIC) chuyên dụng để định tuyến giữa các VLAN với tốc độ cực nhanh, nhường lại việc kết nối Internet cho Router xử lý.'
+                desc: 'Định tuyến IP nội bộ (giữa các VLAN) tốc độ cực cao, giảm tải cho Router.',
+                detail: 'Sử dụng chip phần cứng (ASIC) chuyên dụng để định tuyến giữa các phòng ban nội bộ nhanh hơn Router rất nhiều.'
             },
             wlc: { id: 'wlc', type: 'Controller', name: 'WLAN Controller', icon: TopoWLC, x: 230, y: 350, 
-                desc: 'Thiết bị điều khiển Wi-Fi tập trung. Quản lý hàng chục đến hàng ngàn Access Point cùng lúc.',
-                detail: 'Nếu chỉ có 1-2 cục Wi-Fi, bạn có thể tự cấu hình tên/mật khẩu từng cục. Nhưng nếu có 100 cục phát trong tòa nhà, bạn cần WLC. WLC sẽ đẩy cấu hình xuống tất cả AP tự động, quản lý việc chuyển vùng (Roaming) để người dùng đi lại trong tòa nhà mà không rớt mạng, và tự động điều chỉnh công suất sóng/kênh truyền để tránh nhiễu.'
+                desc: 'Bộ não quản lý hàng trăm Access Point, phát cấu hình và mật khẩu đồng loạt.',
+                detail: 'Đẩy cấu hình xuống AP tự động, quản lý chuyển vùng (Roaming) để người dùng đi lại không rớt mạng.'
             },
-            l2switch: { id: 'l2switch', type: 'L2 Switch', name: 'L2 Switch (Access)', icon: TopoL2Switch, x: 230, y: 470, 
-                desc: 'Thiết bị lớp 2 (Data Link Layer). Cung cấp các cổng mạng vật lý (RJ45) để cắm máy tính, máy in.',
-                detail: 'L2 Switch chỉ hiểu địa chỉ MAC vật lý của thiết bị, không hiểu IP. Nó học địa chỉ MAC và lưu vào bảng MAC (CAM Table). Khi PC A muốn gửi dữ liệu cho PC B, Switch sẽ tra bảng MAC, biết chính xác PC B cắm ở cổng số mấy và chỉ chuyển dữ liệu ra đúng cổng đó, giúp mạng không bị xung đột và tốc độ luôn đạt tối đa.'
+            l2switch: { id: 'l2switch', type: 'L2 Switch', name: 'L2 Switch', icon: TopoL2Switch, x: 230, y: 470, 
+                desc: 'Chia cổng mạng nội bộ. Chuyển tiếp dữ liệu dựa trên địa chỉ MAC thiết bị.',
+                detail: 'Chỉ hiểu địa chỉ MAC vật lý. Đẩy dữ liệu trực tiếp đến đúng máy đích giúp tốc độ truyền tải đạt mức tối đa.'
             },
-            ap: { id: 'ap', type: 'Access Point', name: 'Access Point (AP)', icon: TopoAP, x: 570, y: 470, 
-                desc: 'Điểm truy cập không dây. Chuyển đổi dữ liệu mạng có dây thành sóng vô tuyến (Wi-Fi) và ngược lại.',
-                detail: 'AP thường được gắn trên trần nhà. Nó thực chất là một "cây cầu" (Bridge) vô hình kết nối các thiết bị không dây (điện thoại, laptop) vào mạng LAN có dây. Trong mô hình doanh nghiệp, các AP thường là loại "Lightweight" (AP mỏng), nghĩa là chúng không tự xử lý logic mà đẩy hết dữ liệu qua đường hầm (CAPWAP Tunnel) về cho WLC xử lý.'
+            ap: { id: 'ap', type: 'Access Point', name: 'Access Point', icon: TopoAP, x: 570, y: 470, 
+                desc: 'Phát sóng Wi-Fi. Chuyển hóa sóng vô tuyến thành dữ liệu mạng có dây.',
+                detail: 'Đóng vai trò "cây cầu" đưa thiết bị không dây vào mạng LAN. Nhận mọi lệnh điều khiển từ thiết bị WLC.'
             },
-            pc1: { id: 'pc1', type: 'End Device', name: 'PC 1 (Kế toán)', icon: TopoPC, x: 130, y: 570, 
-                desc: 'Máy tính người dùng cuối dùng mạng cáp đồng (Ethernet).',
-                detail: 'Đóng vai trò là nguồn phát sinh hoặc đích nhận dữ liệu. Cần được cấu hình IP, Subnet Mask, và Default Gateway để giao tiếp.'
+            pc1: { id: 'pc1', type: 'PC', name: 'PC 1 (Kế toán)', icon: TopoPC, x: 130, y: 570, 
+                desc: 'Máy tính dùng mạng cáp đồng (Ethernet) thuộc VLAN Kế toán.',
+                detail: 'Nguồn phát/đích nhận dữ liệu chính trong hệ thống.'
             },
-            pc2: { id: 'pc2', type: 'End Device', name: 'PC 2 (Kế toán)', icon: TopoPC, x: 330, y: 570, 
-                desc: 'Máy tính người dùng cuối dùng mạng cáp đồng (Ethernet).',
-                detail: 'Cùng thuộc VLAN (mạng con) Kế toán với PC1, nên có thể giao tiếp trực tiếp qua L2 Switch mà không cần định tuyến.'
+            pc2: { id: 'pc2', type: 'PC', name: 'PC 2 (Kế toán)', icon: TopoPC, x: 330, y: 570, 
+                desc: 'Máy tính cùng VLAN Kế toán với PC 1.',
+                detail: 'Giao tiếp trực tiếp với PC1 qua L2 Switch mà không cần định tuyến.'
             },
-            phone: { id: 'phone', type: 'End Device', name: 'Điện thoại (Khách)', icon: TopoPhone, x: 570, y: 570, 
-                desc: 'Thiết bị người dùng cuối kết nối qua sóng Wi-Fi.',
-                detail: 'Thuộc VLAN Khách. Doanh nghiệp thường tách biệt mạng Khách và mạng Nội bộ (Kế toán) để đảm bảo bảo mật. Khách chỉ có thể ra Internet chứ không được truy cập vào máy chủ dữ liệu nội bộ.'
+            phone: { id: 'phone', type: 'Phone', name: 'Điện thoại (Khách)', icon: TopoPhone, x: 570, y: 570, 
+                desc: 'Thiết bị di động của Khách kết nối qua Wi-Fi (VLAN Khách).',
+                detail: 'Tách biệt bảo mật với Kế toán. Thường chỉ được phép ra Internet chứ không được vào Server nội bộ.'
             },
         };
 
@@ -219,41 +220,41 @@
         const scenarios = [
             {
                 id: 1,
-                title: 'PC1 truy cập dữ liệu trên PC2 (Cùng mạng LAN)',
-                desc: 'Mô phỏng Switching Lớp 2. Dữ liệu không đi qua Router.',
+                title: 'PC1 truy cập dữ liệu trên PC2 (Cùng mạng)',
+                desc: 'Dữ liệu chỉ chạy qua Switch Lớp 2.',
                 path: ['pc1', 'l2switch', 'pc2'],
                 logs: {
-                    'pc1': 'Người dùng ở PC1 (IP 10.0.1.10) gửi tệp tin cho PC2 (IP 10.0.1.20). Do cùng dải mạng, PC1 dùng giao thức ARP tìm được địa chỉ MAC của PC2. PC1 đóng gói dữ liệu thành Frame gửi ra dây cáp.',
-                    'l2switch': 'Switch nhận Frame, đọc địa chỉ MAC đích. Tra bảng MAC thấy PC2 đang cắm ở Port 2. Switch lập tức đẩy trực tiếp Frame ra Port 2. Tốc độ chuyển mạch tính bằng micro-giây.',
-                    'pc2': 'PC2 nhận được Frame, kiểm tra MAC đúng là của mình nên mở gói tin để xử lý tệp tin.'
+                    'pc1': 'Đóng gói dữ liệu thành Frame, kèm địa chỉ MAC của PC2 gửi ra cáp.',
+                    'l2switch': 'Đọc MAC đích. Phát hiện PC2 ở cổng số 2, đẩy thẳng gói tin sang (Không cần định tuyến).',
+                    'pc2': 'Nhận và mở gói tin thành công.'
                 },
                 status: 'success'
             },
             {
                 id: 2,
-                title: 'PC1 gửi file sang Điện thoại (Khác mạng con)',
-                desc: 'Mô phỏng Định tuyến nội bộ (Inter-VLAN Routing) qua L3 Switch.',
+                title: 'PC1 gửi file sang Điện thoại (Khác mạng)',
+                desc: 'Cần L3 Switch định tuyến nội bộ.',
                 path: ['pc1', 'l2switch', 'l3switch', 'ap', 'phone'],
                 logs: {
-                    'pc1': 'PC1 (VLAN Kế toán) cần gửi dữ liệu sang Điện thoại (VLAN Khách). Nhận thấy đích đến khác mạng, PC1 đóng gói IP Packet gửi đến Default Gateway (Cổng mặc định là IP của L3 Switch).',
-                    'l2switch': 'Switch Lớp 2 không biết định tuyến. Nó chỉ làm nhiệm vụ chuyển tiếp Frame lên cổng nối với L3 Switch (Cổng Trunk).',
-                    'l3switch': 'L3 Switch tháo lớp Frame, đọc lớp IP Packet. Tra bảng định tuyến nội bộ, phát hiện mạng của Khách nằm ở phía bên phải. Nó đóng gói lại và đẩy xuống AP.',
-                    'ap': 'Access Point nhận dữ liệu dạng tín hiệu điện từ dây cáp. Nó điều chế, mã hóa (WPA2/WPA3) và phát tín hiệu này ra môi trường không khí dưới dạng sóng Wi-Fi.',
-                    'phone': 'Điện thoại (Khách) bắt được sóng Wi-Fi, giải mã tín hiệu và nhận được file.'
+                    'pc1': 'Khác mạng, gửi dữ liệu lên Default Gateway (IP L3 Switch).',
+                    'l2switch': 'Đẩy nguyên Frame lên cổng nối với Core Switch.',
+                    'l3switch': 'Đọc IP. Tra bảng định tuyến, đẩy dữ liệu sang nhánh mạng của Khách (xuống AP).',
+                    'ap': 'Chuyển dữ liệu điện tử thành sóng vô tuyến và phát đi.',
+                    'phone': 'Bắt sóng Wi-Fi và nhận thành công.'
                 },
                 status: 'success'
             },
             {
                 id: 3,
-                title: 'Điện thoại truy cập Website bị cấm (Firewall chặn)',
-                desc: 'Mô phỏng luồng ra Internet và vai trò của Firewall.',
+                title: 'Điện thoại truy cập Web bị cấm',
+                desc: 'Firewall chặn các truy cập ra ngoài.',
                 path: ['phone', 'ap', 'l3switch', 'router', 'firewall'],
                 logs: {
-                    'phone': 'Điện thoại của khách gõ địa chỉ website có nội dung độc hại trên trình duyệt.',
-                    'ap': 'AP thu nhận sóng Wi-Fi từ điện thoại, chuyển hóa thành luồng dữ liệu cáp đồng và đẩy lên mạng lõi.',
-                    'l3switch': 'L3 Switch nhận định đây là kết nối ra Internet (không phải IP nội bộ), nên nó đẩy gói tin lên Default Route (hướng về Router trung tâm).',
-                    'router': 'Router tra bảng định tuyến, biết cần đẩy ra cổng WAN để đến Internet. Trước khi đi, gói tin phải đi qua Firewall.',
-                    'firewall': 'Firewall thực hiện phân tích sâu gói tin (Deep Packet Inspection). Quét địa chỉ IP và URL đích. Trùng khớp với Rule "BLOCK_MALICIOUS_SITES". Tường lửa LẬP TỨC HỦY (DROP) gói tin và không cho ra Internet.'
+                    'phone': 'Khách gửi yêu cầu vào một trang web bị cấm.',
+                    'ap': 'Nhận sóng và đẩy qua mạng lõi.',
+                    'l3switch': 'Nhận thấy là IP ngoài Internet, đẩy lên cho Router.',
+                    'router': 'Tra bảng, tìm đường đẩy ra Firewall.',
+                    'firewall': 'Kiểm tra luật. Phát hiện vi phạm -> HỦY (DROP) gói tin lập tức.'
                 },
                 status: 'blocked'
             }
@@ -266,12 +267,10 @@
             const [currentStep, setCurrentStep] = React.useState(-1);
             const [isPlaying, setIsPlaying] = React.useState(false);
 
-            // Cập nhật icon lúc đầu render nếu cần
             React.useEffect(() => {
                 if (window.lucide) window.lucide.createIcons();
             }, []);
 
-            // Animation effect for topology
             React.useEffect(() => {
                 let timer;
                 if (isPlaying && activeScenario && currentStep < activeScenario.path.length) {
@@ -283,11 +282,11 @@
 
                     timer = setTimeout(() => {
                         if (currentStep === activeScenario.path.length - 1) {
-                            setIsPlaying(false); // End of path
+                            setIsPlaying(false);
                         } else {
                             setCurrentStep(prev => prev + 1);
                         }
-                    }, 4000); // 4s per hop (chậm hơn để đọc giải thích dài)
+                    }, 3500); 
                 }
                 return () => clearTimeout(timer);
             }, [isPlaying, currentStep, activeScenario]);
@@ -309,30 +308,31 @@
             };
 
             return (
-                <div className="flex flex-col h-screen w-full bg-slate-100 font-sans text-slate-800">
+                <div className="flex flex-col h-[100dvh] w-full bg-slate-100 font-sans text-slate-800">
                     
                     {/* Header Bar */}
-                    <div className="h-14 bg-indigo-900 text-white flex items-center px-6 shadow-md shrink-0 z-40">
-                        <IconComponent name="network" className="mr-3" />
-                        <h1 className="text-xl font-bold tracking-wide">Interactive Network Simulator</h1>
-                        <div className="ml-auto text-sm text-indigo-200">Lab: Chức năng thiết bị mạng cơ bản</div>
+                    <div className="h-12 md:h-14 bg-indigo-900 text-white flex items-center px-4 md:px-6 shadow-md shrink-0 z-40">
+                        <IconComponent name="network" size={20} className="mr-2" />
+                        <h1 className="text-base md:text-xl font-bold tracking-wide truncate">Network Lab</h1>
+                        <div className="ml-auto text-xs md:text-sm text-indigo-200 hidden sm:block">Mô phỏng chức năng thiết bị mạng</div>
                     </div>
 
                     <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
                         
-                        {/* LEFT PANEL: NETWORK TOPOLOGY */}
-                        <div className="lg:w-[60%] flex flex-col p-4 relative bg-white border-r border-slate-200 shadow-inner">
-                            <h2 className="text-lg font-bold text-slate-700 flex items-center gap-2 mb-2 shrink-0 z-30 pt-2 pl-2">
+                        {/* LEFT/TOP PANEL: NETWORK TOPOLOGY */}
+                        <div className="h-[45%] lg:h-auto lg:w-[55%] xl:w-[60%] flex flex-col relative bg-white border-b lg:border-b-0 lg:border-r border-slate-200 shadow-inner">
+                            <h2 className="absolute top-2 left-3 md:top-4 md:left-4 text-xs md:text-lg font-bold text-slate-700 flex items-center gap-2 z-30 bg-white/80 rounded px-2 py-1 backdrop-blur-sm">
                                 Mô Hình Mạng Doanh Nghiệp
                             </h2>
                             
-                            {/* Network Canvas (Scrollable on small screens if needed) */}
-                            <div className="flex-1 overflow-auto relative flex items-center justify-center">
-                                <div className="relative w-[800px] h-[650px] scale-[0.6] sm:scale-75 md:scale-90 lg:scale-100 transform origin-center">
+                            {/* Canvas Container - Tự động scale theo màn hình (responsive scale) */}
+                            <div className="flex-1 overflow-hidden relative flex items-center justify-center bg-[#f8fafc]">
+                                <div className="relative w-[800px] h-[650px] transform origin-center 
+                                                scale-[0.42] min-[380px]:scale-[0.48] sm:scale-[0.6] md:scale-[0.7] lg:scale-[0.8] xl:scale-[0.9] 2xl:scale-100">
                                     
                                     {/* Background zones */}
-                                    <div className="absolute top-[500px] left-[50px] w-[350px] h-[150px] bg-blue-50 rounded-3xl border-2 border-blue-200 border-dashed opacity-70 pointer-events-none"></div>
-                                    <div className="absolute top-[500px] left-[500px] w-[200px] h-[150px] bg-green-50 rounded-3xl border-2 border-green-200 border-dashed opacity-70 pointer-events-none"></div>
+                                    <div className="absolute top-[500px] left-[50px] w-[350px] h-[150px] bg-blue-50/80 rounded-3xl border-2 border-blue-200 border-dashed pointer-events-none"></div>
+                                    <div className="absolute top-[500px] left-[500px] w-[200px] h-[150px] bg-green-50/80 rounded-3xl border-2 border-green-200 border-dashed pointer-events-none"></div>
                                     <div className="absolute top-[510px] left-[70px] text-blue-500 font-bold uppercase text-xs">VLAN 10: Kế toán</div>
                                     <div className="absolute top-[510px] left-[520px] text-green-500 font-bold uppercase text-xs">VLAN 20: Khách (Wi-Fi)</div>
 
@@ -371,13 +371,13 @@
                                                 style={{ left: device.x, top: device.y }}
                                             >
                                                 <div className={`relative transition-all rounded-xl p-1 w-16 h-16 bg-white
-                                                    ${isSelected ? 'ring-4 ring-indigo-300 shadow-xl' : 'drop-shadow-md'}
+                                                    ${isSelected ? 'ring-4 ring-indigo-400 shadow-2xl' : 'drop-shadow-md'}
                                                     ${isPulsing ? 'animate-pulse ring-4 ring-yellow-400 bg-yellow-50' : ''}
                                                 `}>
                                                     <Icon />
                                                 </div>
-                                                <span className={`mt-2 text-xs font-bold px-2 py-1 rounded-md bg-white border shadow-sm whitespace-nowrap
-                                                    ${isSelected ? 'text-indigo-700 border-indigo-400' : 'text-slate-600 border-slate-200'}
+                                                <span className={`mt-2 text-xs font-bold px-2 py-1 rounded-md bg-white border whitespace-nowrap
+                                                    ${isSelected ? 'text-indigo-800 border-indigo-500 shadow-md' : 'text-slate-600 border-slate-200 shadow-sm'}
                                                     ${isPulsing ? 'bg-yellow-100 border-yellow-400 text-yellow-800' : ''}
                                                 `}>
                                                     {device.name}
@@ -389,7 +389,7 @@
                                     {/* Draw Packet (Animation) */}
                                     {packetPos && (
                                         <div 
-                                            className="absolute transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-yellow-400 rounded-full border-2 border-white shadow-[0_0_15px_rgba(250,204,21,0.8)] transition-all duration-[2000ms] ease-in-out z-50 flex items-center justify-center"
+                                            className="absolute transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-yellow-400 rounded-full border-2 border-white shadow-[0_0_20px_rgba(250,204,21,0.9)] transition-all duration-[2000ms] ease-in-out z-50 flex items-center justify-center"
                                             style={{ left: packetPos.x, top: packetPos.y }}
                                         >
                                             <div className="w-2 h-2 bg-yellow-800 rounded-full animate-ping"></div>
@@ -398,93 +398,89 @@
                                 </div>
                             </div>
                             
-                            <div className="absolute top-4 right-4 text-xs font-semibold text-slate-500 bg-white/90 p-2 rounded shadow backdrop-blur flex items-center gap-2 border border-slate-200">
-                                <IconComponent name="info" size={16}/> Click vào thiết bị bất kỳ để xem chức năng
+                            <div className="absolute bottom-2 left-2 md:bottom-4 md:right-4 md:left-auto text-[10px] md:text-xs font-semibold text-slate-500 bg-white/90 p-1.5 px-2 md:p-2 rounded shadow backdrop-blur flex items-center gap-1.5 border border-slate-200">
+                                <IconComponent name="info" size={14}/> Nhấn vào thiết bị để xem chi tiết
                             </div>
                         </div>
 
-                        {/* RIGHT PANEL: INFO & MINDMAP SIMULATION */}
-                        <div className="lg:w-[40%] bg-slate-50 flex flex-col h-full z-20 overflow-hidden">
+                        {/* RIGHT/BOTTOM PANEL: INFO & SIMULATION */}
+                        <div className="h-[55%] lg:h-auto lg:w-[45%] xl:w-[40%] bg-slate-50 flex flex-col z-20 overflow-hidden">
                             
-                            {/* Device Information Section - Nửa trên */}
-                            <div className="h-1/2 p-6 bg-white border-b border-slate-200 shadow-sm overflow-y-auto shrink-0 flex flex-col relative">
-                                {/* Dải màu trang trí phía trên */}
+                            {/* Device Info Area (Nửa trên của khung bên phải) */}
+                            <div className="h-1/2 p-3 sm:p-4 lg:p-6 bg-white border-b border-slate-200 shadow-sm overflow-y-auto shrink-0 flex flex-col relative custom-scrollbar">
                                 <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500"></div>
                                 
-                                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 border-b pb-2">Thông tin thiết bị chọn</h3>
-                                
-                                <div className="flex items-start gap-4 mb-4">
-                                    <div className={`w-16 h-16 p-2 rounded-xl bg-slate-50 border border-slate-200 shadow flex items-center justify-center shrink-0`}>
+                                <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
+                                    <div className={`w-12 h-12 sm:w-14 sm:h-14 p-2 rounded-xl bg-slate-50 border border-slate-200 shadow-sm flex items-center justify-center shrink-0`}>
                                         {selectedDevice && <selectedDevice.icon />}
                                     </div>
                                     <div>
-                                        <h3 className="text-2xl font-bold text-slate-800 leading-tight">{selectedDevice.name}</h3>
-                                        <div className="inline-block px-2 py-0.5 mt-2 text-xs font-bold text-indigo-700 bg-indigo-100 rounded-full border border-indigo-200">
+                                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-800 leading-tight">{selectedDevice.name}</h3>
+                                        <div className="inline-block px-2 py-0.5 mt-1 sm:mt-2 text-[10px] sm:text-xs font-bold text-indigo-700 bg-indigo-100 rounded-full border border-indigo-200">
                                             Role: {selectedDevice.type}
                                         </div>
                                     </div>
                                 </div>
                                 
-                                <div className="space-y-4">
+                                <div className="space-y-3 sm:space-y-4">
                                     <div>
-                                        <h4 className="font-semibold text-slate-700 mb-1 text-sm">Định nghĩa ngắn gọn:</h4>
-                                        <p className="text-slate-600 text-sm bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                        <p className="text-slate-700 text-xs sm:text-sm font-medium bg-slate-100/80 p-2 sm:p-3 rounded-lg border border-slate-200">
                                             {selectedDevice.desc}
                                         </p>
                                     </div>
                                     
                                     <div>
-                                        <h4 className="font-semibold text-slate-700 mb-1 text-sm flex items-center gap-1">
-                                            <IconComponent name="info" size={14} className="text-blue-500"/> Giải thích chi tiết & Thực tế:
+                                        <h4 className="font-bold text-slate-600 mb-1 sm:mb-2 text-[11px] sm:text-sm flex items-center gap-1 uppercase tracking-wider">
+                                            <IconComponent name="info" size={14} className="text-blue-500"/> Giải thích thực tế
                                         </h4>
-                                        <p className="text-slate-700 text-sm leading-relaxed bg-blue-50/50 p-4 rounded-lg border border-blue-100 text-justify">
+                                        <p className="text-slate-600 text-[11px] sm:text-sm leading-relaxed bg-blue-50/40 p-3 sm:p-4 rounded-lg border border-blue-100">
                                             {selectedDevice.detail}
                                         </p>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Simulation Controls Section - Nửa dưới */}
-                            <div className="h-1/2 p-6 flex flex-col overflow-hidden bg-slate-50">
-                                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 border-b pb-2 flex items-center gap-2">
-                                    <IconComponent name="play" size={16} className="text-indigo-600" /> Bảng Mô Phỏng Luồng
+                            {/* Simulation Controls Area (Nửa dưới của khung bên phải) */}
+                            <div className="h-1/2 p-3 sm:p-4 lg:p-6 flex flex-col overflow-hidden bg-slate-50">
+                                <h3 className="text-[11px] sm:text-sm font-bold text-slate-400 uppercase tracking-wider mb-2 sm:mb-4 pb-1 sm:pb-2 border-b flex items-center gap-1.5 sm:gap-2">
+                                    <IconComponent name="play" size={14} className="text-indigo-600 sm:w-4 sm:h-4" /> 
+                                    <span>Mô Phỏng Gói Tin (Packet Flow)</span>
                                 </h3>
                                 
                                 {!isPlaying && !activeScenario ? (
-                                    <div className="space-y-3 overflow-y-auto pr-2 pb-6 custom-scrollbar">
-                                        <p className="text-sm text-slate-500 mb-2 italic">Hãy chọn một kịch bản bên dưới để xem luồng đi của gói tin (Packet):</p>
+                                    <div className="space-y-2 sm:space-y-3 overflow-y-auto pr-1 pb-4 custom-scrollbar flex-1">
                                         {scenarios.map(scen => (
                                             <button
                                                 key={scen.id}
                                                 onClick={() => startSimulation(scen)}
-                                                className="w-full text-left p-4 bg-white border border-slate-200 rounded-xl hover:border-indigo-400 hover:shadow-md transition-all group relative overflow-hidden flex flex-col"
+                                                className="w-full text-left p-3 sm:p-4 bg-white border border-slate-200 rounded-xl hover:border-indigo-400 active:bg-indigo-50 transition-all group relative overflow-hidden flex flex-col shadow-sm"
                                             >
                                                 <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500 transform origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform"></div>
-                                                <div className="font-bold text-slate-800 group-hover:text-indigo-700 ml-2">Kịch bản {scen.id}: {scen.title}</div>
-                                                <div className="text-xs text-slate-500 mt-1 ml-2 bg-slate-50 inline-block p-1 rounded">{scen.desc}</div>
+                                                <div className="font-bold text-slate-800 group-hover:text-indigo-700 ml-1 sm:ml-2 text-xs sm:text-base leading-tight">{scen.id}. {scen.title}</div>
+                                                <div className="text-[10px] sm:text-xs text-slate-500 mt-1 sm:mt-1.5 ml-1 sm:ml-2 bg-slate-50 inline-block p-1 rounded">{scen.desc}</div>
                                             </button>
                                         ))}
                                     </div>
                                 ) : (
                                     <div className="flex flex-col h-full overflow-hidden">
-                                        <div className="bg-white border border-slate-200 shadow-sm p-3 rounded-xl mb-4 shrink-0 flex justify-between items-center">
-                                            <div>
-                                                <h4 className="font-bold text-indigo-900 text-sm mb-1">{activeScenario?.title}</h4>
-                                                <div className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded inline-block">
-                                                    Trạm dừng: {currentStep + 1} / {activeScenario.path.length}
+                                        <div className="bg-white border border-slate-200 shadow-sm p-2.5 sm:p-3 rounded-lg sm:rounded-xl mb-3 shrink-0 flex justify-between items-center">
+                                            <div className="overflow-hidden pr-2">
+                                                <h4 className="font-bold text-indigo-900 text-xs sm:text-sm mb-0.5 truncate">{activeScenario?.title}</h4>
+                                                <div className="text-[10px] sm:text-xs font-semibold text-slate-500">
+                                                    Trạm: {currentStep + 1} / {activeScenario.path.length}
                                                 </div>
                                             </div>
                                             <button 
                                                 onClick={stopSimulation}
-                                                className="px-3 py-1.5 text-xs bg-slate-100 text-slate-600 hover:bg-red-500 hover:text-white rounded-lg font-bold transition-colors shadow-sm"
+                                                className="px-2.5 py-1.5 sm:px-3 sm:py-2 text-[10px] sm:text-xs bg-slate-100 text-slate-600 hover:bg-red-500 hover:text-white active:bg-red-600 rounded-lg font-bold transition-colors shadow-sm whitespace-nowrap shrink-0"
                                             >
-                                                Kết thúc
+                                                Dừng lại
                                             </button>
                                         </div>
 
                                         {/* FLOW MAP (MINDMAP) */}
-                                        <div className="flex-1 overflow-y-auto bg-white border border-slate-200 rounded-xl p-4 sm:p-6 relative custom-scrollbar">
-                                            <div className="absolute top-10 bottom-10 left-8 sm:left-10 w-1 bg-slate-100 rounded-full z-0"></div>
+                                        <div className="flex-1 overflow-y-auto bg-white border border-slate-200 rounded-lg sm:rounded-xl p-3 sm:p-5 relative custom-scrollbar">
+                                            <div className="absolute top-6 bottom-6 left-[22px] sm:left-[34px] w-0.5 sm:w-1 bg-slate-100 rounded-full z-0"></div>
 
                                             {activeScenario.path.map((deviceId, idx) => {
                                                 const device = devices[deviceId];
@@ -495,35 +491,35 @@
                                                 const isLastNode = idx === activeScenario.path.length - 1;
                                                 
                                                 return (
-                                                    <div key={idx} className="relative z-10 flex gap-4 sm:gap-6 mb-8 group">
+                                                    <div key={idx} className="relative z-10 flex gap-3 sm:gap-5 mb-5 sm:mb-7 group">
                                                         
                                                         {/* Node Icon */}
-                                                        <div className="relative flex flex-col items-center shrink-0 w-10 sm:w-12">
-                                                            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-4 transition-all duration-500 z-10 bg-white
+                                                        <div className="relative flex flex-col items-center shrink-0 w-8 sm:w-12">
+                                                            <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-[3px] sm:border-4 transition-all duration-500 z-10 bg-white
                                                                 ${isPassed ? 'border-indigo-500' : ''}
-                                                                ${isActive ? 'border-yellow-400 ring-4 ring-yellow-100 scale-110 shadow-md' : ''}
+                                                                ${isActive ? 'border-yellow-400 ring-2 sm:ring-4 ring-yellow-100 scale-110 shadow-md' : ''}
                                                                 ${isPending ? 'border-slate-200 grayscale opacity-50' : ''}
                                                             `}>
-                                                                <div className="w-6 h-6 sm:w-8 sm:h-8"><Icon /></div>
+                                                                <div className="w-4 h-4 sm:w-7 sm:h-7"><Icon /></div>
                                                             </div>
 
                                                             {/* Connected Line active state */}
                                                             {!isLastNode && (
-                                                                <div className={`absolute top-10 sm:top-12 w-1 h-[calc(100%+32px)] transition-colors duration-1000 -z-10
+                                                                <div className={`absolute top-8 sm:top-12 w-0.5 sm:w-1 h-[calc(100%+20px)] sm:h-[calc(100%+28px)] transition-colors duration-1000 -z-10
                                                                     ${isPassed ? 'bg-indigo-500' : 'bg-transparent'}
                                                                 `}></div>
                                                             )}
                                                         </div>
 
                                                         {/* Node Content / Log */}
-                                                        <div className={`flex-1 pt-1 transition-all duration-500 ${isPending ? 'opacity-40' : 'opacity-100'}`}>
-                                                            <div className="font-bold text-slate-800 flex items-center gap-2 text-sm sm:text-base">
+                                                        <div className={`flex-1 pt-0.5 sm:pt-1 transition-all duration-500 ${isPending ? 'opacity-40' : 'opacity-100'}`}>
+                                                            <div className="font-bold text-slate-800 flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-sm">
                                                                 {device.name}
-                                                                {isPassed && <IconComponent name="check-circle-2" size={16} className="text-indigo-500" />}
+                                                                {isPassed && <IconComponent name="check-circle-2" className="text-indigo-500 w-3 h-3 sm:w-4 sm:h-4" />}
                                                             </div>
                                                             
                                                             {(isActive || isPassed) && (
-                                                                <div className={`mt-2 text-xs sm:text-sm p-3 rounded-lg border leading-relaxed
+                                                                <div className={`mt-1.5 sm:mt-2 text-[10px] sm:text-[13px] p-2 sm:p-3 rounded-lg border leading-relaxed
                                                                     ${isActive ? 'bg-yellow-50 border-yellow-200 text-yellow-900 shadow-inner' : 'bg-slate-50 border-slate-100 text-slate-600'}
                                                                 `}>
                                                                     {activeScenario.logs[deviceId]}
@@ -532,11 +528,11 @@
                                                             
                                                             {/* Result Tag for Last Node */}
                                                             {isLastNode && (isActive || isPassed) && !isPlaying && (
-                                                                <div className={`mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold animate-fadeIn shadow-sm
+                                                                <div className={`mt-2 sm:mt-3 inline-flex items-center gap-1 sm:gap-2 px-2 py-1 sm:px-3 sm:py-1.5 rounded sm:rounded-lg text-[10px] sm:text-sm font-bold animate-fadeIn shadow-sm
                                                                     ${activeScenario.status === 'success' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200'}
                                                                 `}>
-                                                                    {activeScenario.status === 'success' ? <IconComponent name="check-circle-2" size={18}/> : <IconComponent name="x-circle" size={18}/>}
-                                                                    {activeScenario.status === 'success' ? 'Thành công: Gói tin đến đích!' : 'Thất bại: Gói tin bị Hủy (Dropped)!'}
+                                                                    {activeScenario.status === 'success' ? <IconComponent name="check-circle-2" className="w-3 h-3 sm:w-4 sm:h-4"/> : <IconComponent name="x-circle" className="w-3 h-3 sm:w-4 sm:h-4"/>}
+                                                                    {activeScenario.status === 'success' ? 'Đã đến đích!' : 'Gói tin bị chặn!'}
                                                                 </div>
                                                             )}
                                                         </div>
